@@ -59,6 +59,10 @@ public class BleService extends Service {
 	}
 
 
+	public void sendData(UUID serviceUuid, UUID characteristicUuid, byte[] bytes) {
+		BLEControl.get().sendData(serviceUuid, characteristicUuid, bytes, bleDataTransCallBack);
+	}
+
 	BLEConnectCallBack bleConnectCallBack = new BLEConnectCallBack() {
 		@Override
 		public void onConnecting() {
@@ -91,24 +95,24 @@ public class BleService extends Service {
 
 	BLEDataTransCallBack bleDataTransCallBack = new BLEDataTransCallBack() {
 		@Override
-		public void onCharacteristicRead() {
+		public void onCharRead(String uuid, byte[] data) {
 
 		}
 
 		@Override
-		public void onCharacteristicWrite() {
+		public void onCharWrite(String uuid, byte[] data) {
 
 		}
 
 		@Override
-		public void onNotify(byte[] data) {
+		public void onNotify(String uuid, byte[] data) {
 
 //			Bundle bundle = new Bundle();
 //			bundle.putInt(BLEConstant.Type.TYPE_STATE, state);
 //			RxBus.getInstance().send(bundle);
 
 //			BLEByteUtil.printHex(data);
-			LogUtil.e("onNotify()--->>"+BLEByteUtil.getHexString(data));
+			LogUtil.e("onNotify()--->>" + BLEByteUtil.getHexString(data));
 //			ToastUtil.showShort(MyApplication.getContext(), BLEByteUtil.getHexString(data));
 
 

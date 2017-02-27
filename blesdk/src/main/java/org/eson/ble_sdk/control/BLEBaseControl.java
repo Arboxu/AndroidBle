@@ -6,10 +6,9 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothProfile;
 
+import org.eson.ble_sdk.util.BLEByteUtil;
 import org.eson.ble_sdk.util.BLELog;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -23,9 +22,7 @@ class BLEBaseControl implements BLEConnectCallBack, BLEDataTransCallBack {
 	protected BluetoothAdapter bluetoothAdapter = null;
 	protected BluetoothGatt bluetoothGatt;
 
-	protected List<BLEDataTransCallBack> dataSendCallBacks = new ArrayList<>();
-	protected List<BLEDataTransCallBack> dataNotifyCallBacks = new ArrayList<>();
-
+	protected BLEDataTransCallBack dataTransCallBack = null;
 
 	public BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 		@Override
@@ -65,7 +62,11 @@ class BLEBaseControl implements BLEConnectCallBack, BLEDataTransCallBack {
 			super.onCharacteristicRead(gatt, characteristic, status);
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 
-				BLELog.d("-->>onCharacteristicRead()");
+				BLELog.d("-->>onCharRead()");
+				UUID uuid = characteristic.getUuid();
+
+				byte[] readValue = characteristic.getValue();
+				onCharRead(uuid.toString(), readValue);
 			}
 		}
 
@@ -75,9 +76,17 @@ class BLEBaseControl implements BLEConnectCallBack, BLEDataTransCallBack {
 
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				//发送成功
-				BLELog.d("-->>onCharacteristicWrite()");
+				BLELog.d("-->>onCharWrite()");
+				UUID uuid = characteristic.getUuid();
+
+				byte[] writeValue = characteristic.getValue();
+
+				onCharWrite(uuid.toString(), writeValue);
+				BLELog.d("uuid-->>" + uuid.toString());
+				BLEByteUtil.printHex(writeValue);
 			}
 		}
+
 
 		@Override
 		public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
@@ -90,34 +99,11 @@ class BLEBaseControl implements BLEConnectCallBack, BLEDataTransCallBack {
 			UUID uuid = characteristic.getUuid();
 			BLELog.d("uuid-->>" + uuid.toString());
 
-
 			byte[] noticeValue = characteristic.getValue();
-//			BLEByteUtil.printHex(noticeValue);
-			onNotify(noticeValue);
+			onNotify(uuid.toString(), noticeValue);
 		}
 	};
 
-
-	public void removeDataSendCallback(BLEDataTransCallBack dataTransCallBack) {
-		BLEDataTransport.get().removeDataSendCallback(dataTransCallBack);
-
-	}
-
-	public void removeDataNotifyCallback(BLEDataTransCallBack dataTransCallBack) {
-		BLEDataTransport.get().removeDataNotifyCallback(dataTransCallBack);
-
-	}
-
-
-	public void cleanDataSendCallback() {
-
-		BLEDataTransport.get().cleanDataSendCallback();
-	}
-
-	public void cleanDataNotifyCallback() {
-
-		BLEDataTransport.get().cleanDataNotifyCallback();
-	}
 
 	///
 	@Override
@@ -128,8 +114,8 @@ class BLEBaseControl implements BLEConnectCallBack, BLEDataTransCallBack {
 	}
 
 	@Override
-	public void onCharacteristicRead() {
-
+	public void onCharRead(String uuid, byte[] data) {
+		BLEDataTransport.get().onCharRead(uuid, data);
 	}
 
 	@Override
@@ -138,19 +124,18 @@ class BLEBaseControl implements BLEConnectCallBack, BLEDataTransCallBack {
 	}
 
 	@Override
-	public void onCharacteristicWrite() {
-
+	public void onCharWrite(String uuid, byte[] data) {
+		BLEDataTransport.get().onCharWrite(uuid, data);
 	}
 
 	@Override
 	public void onDisConnecting() {
 
-
 	}
 
 	@Override
-	public void onNotify(byte[] data) {
-		BLEDataTransport.get().onNotify(data);
+	public void onNotify(String uuid, byte[] data) {
+		BLEDataTransport.get().onNotify(uuid, data);
 	}
 
 	@Override

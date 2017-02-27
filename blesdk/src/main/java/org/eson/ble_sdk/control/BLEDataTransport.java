@@ -38,8 +38,12 @@ class BLEDataTransport extends BLEBaseControl {
 		if (bluetoothGatt == null) {
 			return;
 		}
-		if (bleDataTransCallBack != null) {
-			dataSendCallBacks.add(bleDataTransCallBack);
+
+		//TODO 判断蓝牙连接状态
+
+		//
+		if (bleDataTransCallBack != null && dataTransCallBack == null) {
+			dataTransCallBack = bleDataTransCallBack;
 		}
 		BluetoothGattService service = bluetoothGatt.getService(serviceUuid);
 		if (service == null) {
@@ -61,6 +65,8 @@ class BLEDataTransport extends BLEBaseControl {
 		if (bluetoothGatt == null) {
 			return;
 		}
+		//TODO 判断蓝牙连接状态
+
 		BluetoothGattService service = bluetoothGatt.getService(serviceUuid);
 		if (service == null) {
 			return;
@@ -82,8 +88,10 @@ class BLEDataTransport extends BLEBaseControl {
 			return;
 		}
 
-		if (bleDataTransCallBack != null) {
-			dataNotifyCallBacks.add(bleDataTransCallBack);
+		//TODO 判断蓝牙连接状态
+
+		if (bleDataTransCallBack != null && dataTransCallBack == null) {
+			dataTransCallBack = bleDataTransCallBack;
 		}
 		BluetoothGattService service = bluetoothGatt.getService(serviceUuid);
 		if (service == null) {
@@ -104,67 +112,25 @@ class BLEDataTransport extends BLEBaseControl {
 		BLELog.i("enableNotify-->>" + characteristicUuid.toString());
 	}
 
-
 	@Override
-	public void onNotify(byte[] data) {
-//		super.onNotify(data);
-		if (dataNotifyCallBacks.size() == 0) {
-			return;
-		}
-
-
-		for (BLEDataTransCallBack dataNotifyCallBack : dataNotifyCallBacks) {
-
-			dataNotifyCallBack.onNotify(data);
+	public void onCharWrite(String uuid, byte[] data) {
+		if (dataTransCallBack != null) {
+			dataTransCallBack.onCharWrite(uuid, data);
 		}
 	}
 
 	@Override
-	public void removeDataSendCallback(BLEDataTransCallBack dataTransCallBack) {
-		super.removeDataSendCallback(dataTransCallBack);
-		if (dataTransCallBack == null || dataSendCallBacks.size() == 0) {
-			return;
-		}
-
-		for (int i = 0; i < dataSendCallBacks.size(); i++) {
-			if (dataSendCallBacks.contains(dataTransCallBack)) {
-				dataSendCallBacks.remove(dataTransCallBack);
-			}
+	public void onCharRead(String uuid, byte[] data) {
+		if (dataTransCallBack != null) {
+			dataTransCallBack.onCharRead(uuid, data);
 		}
 	}
 
 	@Override
-	public void removeDataNotifyCallback(BLEDataTransCallBack dataTransCallBack) {
-		super.removeDataNotifyCallback(dataTransCallBack);
-
-		if (dataTransCallBack == null || dataNotifyCallBacks.size() == 0) {
-			return;
+	public void onNotify(String uuid, byte[] data) {
+		if (dataTransCallBack != null) {
+			dataTransCallBack.onNotify(uuid, data);
 		}
-
-		for (int i = 0; i < dataNotifyCallBacks.size(); i++) {
-			if (dataNotifyCallBacks.contains(dataTransCallBack)) {
-				dataNotifyCallBacks.remove(dataTransCallBack);
-			}
-		}
-
 	}
 
-	@Override
-	public void cleanDataSendCallback() {
-		super.cleanDataSendCallback();
-		if (dataSendCallBacks.size() == 0) {
-			return;
-		}
-		dataSendCallBacks.clear();
-	}
-
-	@Override
-	public void cleanDataNotifyCallback() {
-		super.cleanDataNotifyCallback();
-
-		if (dataNotifyCallBacks.size() == 0) {
-			return;
-		}
-		dataNotifyCallBacks.clear();
-	}
 }
