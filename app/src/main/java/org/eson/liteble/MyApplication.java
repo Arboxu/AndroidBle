@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import org.eson.ble_sdk.BLESdk;
 import org.eson.liteble.service.BleService;
+import org.eson.liteble.share.ConfigShare;
 import org.eson.liteble.util.LogUtil;
 
 import java.util.List;
@@ -28,6 +29,9 @@ public class MyApplication extends Application {
 	private static Context mContext;
 	private static MyApplication instance;
 
+	private String currentShowDevice = "";
+
+	private ConfigShare configShare;
 
 	public static MyApplication getInstance() {
 		return instance;
@@ -42,9 +46,10 @@ public class MyApplication extends Application {
 		super.onCreate();
 		mContext = this;
 		instance = this;
-		//initial BLE sdk
-		BLESdk.init(mContext);
 
+		BLESdk.init(mContext);
+		configShare = new ConfigShare(mContext);
+		BLESdk.get().setPermitConnectMore(configShare.isPermitConnectMore());
 		Intent bleServer = new Intent(mContext, BleService.class);
 		startService(bleServer);
 
@@ -79,4 +84,19 @@ public class MyApplication extends Application {
 		return false;
 	}
 
+
+	public String getCurrentShowDevice() {
+		return currentShowDevice;
+	}
+
+	public void setCurrentShowDevice(String currentShowDevice) {
+		this.currentShowDevice = currentShowDevice;
+	}
+
+	public ConfigShare getConfigShare() {
+		if (configShare == null) {
+			configShare = new ConfigShare(mContext);
+		}
+		return configShare;
+	}
 }
